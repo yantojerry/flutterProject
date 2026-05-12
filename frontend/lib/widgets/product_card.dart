@@ -34,17 +34,12 @@ class ProductCard extends StatelessWidget {
     return AppColors.success;
   }
 
-  String get _imageUrl {
-    final String imageUrl = product.imageUrl?.trim() ?? '';
-    if (imageUrl.isEmpty) {
-      return '';
-    }
+  String? get _assetImagePath {
+    return resolveProductAssetImagePath(product.imageUrl);
+  }
 
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    return '$baseUrl/images/$imageUrl';
+  String get _networkImageUrl {
+    return resolveProductNetworkImageUrl(product.imageUrl);
   }
 
   @override
@@ -131,7 +126,65 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildThumbnail() {
-    if (_imageUrl.isEmpty) {
+    if (_assetImagePath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset(
+          _assetImagePath!,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (BuildContext context, Object error, StackTrace? stack) {
+            if (_networkImageUrl.isEmpty) {
+              return Container(
+                width: 60,
+                height: 60,
+                color: AppColors.inputFill,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.textSecondary,
+                ),
+              );
+            }
+
+            return CachedNetworkImage(
+              imageUrl: _networkImageUrl,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              placeholder: (BuildContext context, String url) {
+                return Container(
+                  width: 60,
+                  height: 60,
+                  color: AppColors.inputFill,
+                  alignment: Alignment.center,
+                  child: const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              },
+              errorWidget: (BuildContext context, String url, Object error) {
+                return Container(
+                  width: 60,
+                  height: 60,
+                  color: AppColors.inputFill,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      );
+    }
+
+    if (_networkImageUrl.isEmpty) {
       return Container(
         width: 60,
         height: 60,
@@ -146,7 +199,7 @@ class ProductCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: CachedNetworkImage(
-        imageUrl: _imageUrl,
+        imageUrl: _networkImageUrl,
         width: 60,
         height: 60,
         fit: BoxFit.cover,

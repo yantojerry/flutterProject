@@ -31,6 +31,48 @@ String get loginEndpoint => '$baseUrl/login';
 String get productsEndpoint => '$baseUrl/products';
 String get imagesBaseUrl => '$baseUrl/images';
 
+String resolveProductNetworkImageUrl(String? imageUrl) {
+  final String value = imageUrl?.trim() ?? '';
+
+  if (value.isEmpty) {
+    return '';
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return value;
+  }
+
+  final String fileName = value.split('/').last;
+  if (fileName.isEmpty) {
+    return '';
+  }
+
+  return '$baseUrl/images/$fileName';
+}
+
+String? resolveProductAssetImagePath(String? imageUrl) {
+  final String value = imageUrl?.trim() ?? '';
+
+  if (value.isEmpty) {
+    return null;
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return null;
+  }
+
+  if (value.startsWith('assets/')) {
+    return value;
+  }
+
+  final String fileName = value.split('/').last;
+  if (fileName.isEmpty) {
+    return null;
+  }
+
+  return 'assets/images/$fileName';
+}
+
 const String appTitle = 'InventoryPro';
 const String loginTitle = 'Login';
 const String productsTitle = 'Products';

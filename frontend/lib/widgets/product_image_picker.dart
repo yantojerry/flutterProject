@@ -106,17 +106,37 @@ class ProductImagePicker extends StatelessWidget {
   }
 
   Widget _buildImageContent(BuildContext context) {
-    final Widget image = imageBytes != null
-        ? Image.memory(
-            imageBytes!,
-            key: const ValueKey<String>('product_image_picker_memory'),
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: 180,
-          )
-        : CachedNetworkImage(
-            key: const ValueKey<String>('product_image_picker_network'),
-            imageUrl: _resolveImageUrl(imageUrl),
+    final String? assetImagePath = resolveProductAssetImagePath(imageUrl);
+    final String networkImageUrl = resolveProductNetworkImageUrl(imageUrl);
+
+    Widget image;
+    if (imageBytes != null) {
+      image = Image.memory(
+        imageBytes!,
+        key: const ValueKey<String>('product_image_picker_memory'),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 180,
+      );
+    } else if (assetImagePath != null) {
+      image = Image.asset(
+        assetImagePath,
+        key: const ValueKey<String>('product_image_picker_asset'),
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
+        errorBuilder: (
+          BuildContext context,
+          Object error,
+          StackTrace? stackTrace,
+        ) {
+          if (networkImageUrl.isEmpty) {
+            return _buildNetworkFallback(context);
+          }
+
+          return CachedNetworkImage(
+            key: const ValueKey<String>('product_image_picker_network_fallback'),
+            imageUrl: networkImageUrl,
             width: double.infinity,
             height: 180,
             fit: BoxFit.cover,
@@ -128,6 +148,26 @@ class ProductImagePicker extends StatelessWidget {
             errorWidget: (BuildContext context, String url, Object error) =>
                 _buildNetworkFallback(context),
           );
+        },
+      );
+    } else if (networkImageUrl.isNotEmpty) {
+      image = CachedNetworkImage(
+        key: const ValueKey<String>('product_image_picker_network'),
+        imageUrl: networkImageUrl,
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
+        placeholder: (BuildContext context, String url) => Container(
+          color: AppColors.inputFill,
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        ),
+        errorWidget: (BuildContext context, String url, Object error) =>
+            _buildNetworkFallback(context),
+      );
+    } else {
+      image = _buildNetworkFallback(context);
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -182,19 +222,6 @@ class ProductImagePicker extends StatelessWidget {
     );
   }
 
-  String _resolveImageUrl(String? value) {
-    final String imageUrl = value?.trim() ?? '';
-
-    if (imageUrl.isEmpty) {
-      return '';
-    }
-
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    return '$baseUrl/images/$imageUrl';
-  }
 }
 
 class _DashedBorderPainter extends CustomPainter {

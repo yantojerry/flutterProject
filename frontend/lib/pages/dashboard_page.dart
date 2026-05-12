@@ -117,7 +117,9 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   int get _lowStockCount =>
-      _products.where((Product product) => product.stock <= 10).length;
+      _products
+          .where((Product product) => product.stock > 0 && product.stock <= 10)
+          .length;
 
   double get _totalValue => _products.fold<double>(
     0,
@@ -594,17 +596,12 @@ class _RecentProductCard extends StatelessWidget {
   final Product product;
   final Animation<double> animation;
 
-  String get _imageUrl {
-    final String imageUrl = product.imageUrl?.trim() ?? '';
-    if (imageUrl.isEmpty) {
-      return '';
-    }
+  String? get _assetImagePath {
+    return resolveProductAssetImagePath(product.imageUrl);
+  }
 
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    return '$baseUrl/images/$imageUrl';
+  String get _networkImageUrl {
+    return resolveProductNetworkImageUrl(product.imageUrl);
   }
 
   @override
@@ -627,7 +624,71 @@ class _RecentProductCard extends StatelessWidget {
                 children: <Widget>[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: _imageUrl.isEmpty
+                    child: _assetImagePath != null
+                        ? Image.asset(
+                            _assetImagePath!,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (
+                                  BuildContext context,
+                                  Object error,
+                                  StackTrace? stackTrace,
+                                ) {
+                                  if (_networkImageUrl.isEmpty) {
+                                    return Container(
+                                      height: 100,
+                                      color: AppColors.inputFill,
+                                      alignment: Alignment.center,
+                                      child: const Icon(
+                                        Icons.image_outlined,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    );
+                                  }
+
+                                  return CachedNetworkImage(
+                                    imageUrl: _networkImageUrl,
+                                    height: 100,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder:
+                                        (
+                                          BuildContext context,
+                                          String url,
+                                        ) => Container(
+                                          height: 100,
+                                          color: AppColors.inputFill,
+                                          alignment: Alignment.center,
+                                          child: const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        ),
+                                    errorWidget:
+                                        (
+                                          BuildContext context,
+                                          String url,
+                                          Object error,
+                                        ) {
+                                          return Container(
+                                            height: 100,
+                                            color: AppColors.inputFill,
+                                            alignment: Alignment.center,
+                                            child: const Icon(
+                                              Icons.broken_image_outlined,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          );
+                                        },
+                                  );
+                                },
+                          )
+                        : _networkImageUrl.isEmpty
                         ? Container(
                             height: 100,
                             width: double.infinity,
@@ -639,7 +700,7 @@ class _RecentProductCard extends StatelessWidget {
                             ),
                           )
                         : CachedNetworkImage(
-                            imageUrl: _imageUrl,
+                            imageUrl: _networkImageUrl,
                             height: 100,
                             width: double.infinity,
                             fit: BoxFit.cover,
