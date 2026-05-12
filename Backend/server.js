@@ -26,7 +26,7 @@ if (!fs.existsSync(uploadDirectory)) {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/images', express.static(uploadDirectory));
+app.use('/images', express.static('uploads'));
 
 const db = mysql.createConnection(dbConfig);
 
