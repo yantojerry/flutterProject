@@ -1,166 +1,199 @@
 const express = require('express');
-const mysql = require('mysql');
 const cors = require('cors');
 const multer = require('multer');
-const bodyParser = require('body-parser');
+const mysql = require('mysql2');
 const path = require('path');
-
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
+const HOST = '0.0.0.0';
 
-
-// =======================
-// MIDDLEWARE
-// =======================
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.json());
-
-
-// Serve images from public folder
-app.use('/images', express.static('public/images'));
-
-
-// =======================
-// MYSQL CONNECTION
-// =======================
-const db = mysql.createConnection({
+const dbConfig = {
   host: 'localhost',
   port: 3306,
   user: 'root',
   password: 'admin123',
   database: 'flutterdb'
-});
+};
 
+const uploadDirectory = path.join(__dirname, 'uploads');
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL');
-});
+if (!fs.existsSync(uploadDirectory)) {
+  fs.mkdirSync(uploadDirectory, { recursive: true });
+}
 
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/images', express.static(uploadDirectory));
 
-// =======================
-// MULTER (IMAGE UPLOAD)
-// =======================
+const db = mysql.createConnection(dbConfig);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/images');
+    cb(null, uploadDirectory);
   },
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + path.extname(file.originalname);
-    cb(null, uniqueName);
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
-
 const upload = multer({ storage });
 
-
-// =======================
-// LOGIN API
-// =======================
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-
-  const sql = 'SELECT * FROM users WHERE email = ? AND password = ?';
-
-
-  db.query(sql, [email, password], (err, result) => {
-    if (err) return res.status(500).json(err);
-
-
-    if (result.length > 0) {
-      res.json({ message: 'Login successful' });
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' });
+function readMessage(body, fallback) {
+  try {
+    const parsed = JSON.parse(body);
+    if (parsed && parsed.message) {
+      return parsed.message;
     }
+  } catch (error) {
+    // Ignore parse errors and fall back to the default message.
+  }
+
+  return fallback;
+}
+
+function ensureProductsSchema(callback) {
+  const query =
+    'SELECT COUNT(*) AS count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?';
+
+  db.query(query, [dbConfig.database, 'products', 'stock'], (error, rows) => {
+    if (error) {
+      return callback(error);
+    }
+
+    if (rows[0].count > 0) {
+      return callback(null);
+    }
+
+    db.query(
+      'ALTER TABLE products ADD COLUMN stock INT NOT NULL DEFAULT 0',
+      callback
+    );
   });
-});
+}
 
+db.connect((error) => {
+  if (error) {
+    throw error;
+  }
 
-// =======================
-// CREATE PRODUCT
-// =======================
-app.post('/products', upload.single('image'), (req, res) => {
-  const { name, price } = req.body;
-  const image = req.file ? req.file.filename : '';
+  console.log('Connected to MySQL');
 
+  ensureProductsSchema((schemaError) => {
+    if (schemaError) {
+      throw schemaError;
+    }
 
-  const sql = 'INSERT INTO products (name, price, image_url) VALUES (?, ?, ?)';
-
-
-  db.query(sql, [name, price, image], (err, result) => {
-    if (err) return res.status(500).json(err);
-
-
-    res.json({
-      message: 'Product added',
-      id: result.insertId
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running on http://${HOST}:${PORT}`);
     });
   });
 });
 
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
 
-// =======================
-// READ PRODUCTS
-// =======================
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  const sql = 'SELECT id FROM users WHERE email = ? AND password = ? LIMIT 1';
+
+  db.query(sql, [email.trim(), password], (error, rows) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error logging in.' });
+    }
+
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    return res.json({ message: 'Login successful' });
+  });
+});
+
 app.get('/products', (req, res) => {
-  const sql = 'SELECT * FROM products';
+  const sql = 'SELECT id, name, price, stock, image_url FROM products ORDER BY id DESC';
 
+  db.query(sql, (error, rows) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error fetching products' });
+    }
 
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json(err);
-
-
-    res.json(result);
+    return res.json(rows);
   });
 });
 
+app.post('/products', upload.single('image'), (req, res) => {
+  const { name, price, stock } = req.body;
+  const imageUrl = req.file ? req.file.filename : '';
+  const parsedPrice = Number.parseFloat(price);
+  const parsedStock = Number.parseInt(stock, 10);
 
-// =======================
-// UPDATE PRODUCT
-// =======================
-app.put('/products/:id', (req, res) => {
-  const { name, price } = req.body;
+  if (!name || Number.isNaN(parsedPrice) || Number.isNaN(parsedStock)) {
+    return res.status(400).json({ message: 'Invalid product data.' });
+  }
+
+  const sql =
+    'INSERT INTO products (name, price, stock, image_url) VALUES (?, ?, ?, ?)';
+
+  db.query(
+    sql,
+    [name.trim(), parsedPrice, parsedStock, imageUrl],
+    (error, result) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error adding product' });
+      }
+
+      return res.json({
+        message: 'Product added',
+        id: result.insertId,
+        image_url: imageUrl
+      });
+    }
+  );
+});
+
+app.put('/products/:id', upload.single('image'), (req, res) => {
+  const { name, price, stock, existing_image: existingImage } = req.body;
   const id = req.params.id;
+  const parsedPrice = Number.parseFloat(price);
+  const parsedStock = Number.parseInt(stock, 10);
+  const imageUrl = req.file ? req.file.filename : existingImage || '';
 
+  if (!name || Number.isNaN(parsedPrice) || Number.isNaN(parsedStock)) {
+    return res.status(400).json({ message: 'Invalid product data.' });
+  }
 
-  const sql = 'UPDATE products SET name=?, price=? WHERE id=?';
+  const sql =
+    'UPDATE products SET name = ?, price = ?, stock = ?, image_url = ? WHERE id = ?';
 
+  db.query(
+    sql,
+    [name.trim(), parsedPrice, parsedStock, imageUrl, id],
+    (error) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error updating product' });
+      }
 
-  db.query(sql, [name, price, id], (err, result) => {
-    if (err) return res.status(500).json(err);
-
-
-    res.json({ message: 'Product updated' });
-  });
+      return res.json({
+        message: 'Product updated',
+        image_url: imageUrl
+      });
+    }
+  );
 });
 
-
-// =======================
-// DELETE PRODUCT
-// =======================
 app.delete('/products/:id', (req, res) => {
   const id = req.params.id;
 
+  db.query('DELETE FROM products WHERE id = ?', [id], (error) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error deleting product' });
+    }
 
-  const sql = 'DELETE FROM products WHERE id=?';
-
-
-  db.query(sql, [id], (err, result) => {
-    if (err) return res.status(500).json(err);
-
-
-    res.json({ message: 'Product deleted' });
+    return res.json({ message: 'Product deleted' });
   });
-});
-
-
-// =======================
-// START SERVER
-// =======================
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });
