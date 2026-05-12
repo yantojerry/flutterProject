@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/theme_mode_icon_button.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key, required this.onLogout});
@@ -30,6 +31,7 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(profileTitle),
         automaticallyImplyLeading: false,
+        actions: const <Widget>[ThemeModeIconButton()],
       ),
       body: SafeArea(
         child: ListView(
@@ -178,9 +180,9 @@ class _FeatureRow extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.appTextSecondary,
+                ),
               ),
             ],
           ),

@@ -28,6 +28,7 @@ String get baseUrl {
 }
 
 String get loginEndpoint => '$baseUrl/login';
+String get registerEndpoint => '$baseUrl/register';
 String get productsEndpoint => '$baseUrl/products';
 String get imagesBaseUrl => '$baseUrl/images';
 
@@ -75,12 +76,21 @@ String? resolveProductAssetImagePath(String? imageUrl) {
 
 const String appTitle = 'InventoryPro';
 const String loginTitle = 'Login';
+const String signupTitle = 'Create Account';
 const String productsTitle = 'Products';
 const String addProductTitle = 'Add Product';
 const String editProductTitle = 'Edit Product';
+const String productDetailsTitle = 'Product Details';
 const String dashboardTitle = 'Dashboard';
 const String profileTitle = 'Profile';
 const String inventoryProName = 'InventoryPro';
+const String betaAccountNotice =
+    'Create a beta account directly in InventoryPro.';
+const String createAccountButtonText = 'Create account';
+const String alreadyHaveAccountText = 'Already have an account?';
+const String productDescriptionLabel = 'Description';
+const String noProductDescription =
+    'No description has been added for this product yet.';
 
 const String productPlaceholderAsset = 'assets/images/1.jpg';
 

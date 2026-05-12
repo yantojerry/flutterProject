@@ -8,6 +8,7 @@ import '../services/product_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stock_badge.dart';
 import '../widgets/summary_card.dart';
+import '../widgets/theme_mode_icon_button.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key, required this.onSeeAllProducts});
@@ -90,7 +91,10 @@ class _DashboardPageState extends State<DashboardPage>
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(backgroundColor: AppColors.textPrimary, content: Text(message)),
+      SnackBar(
+        backgroundColor: Theme.of(context).colorScheme.inverseSurface,
+        content: Text(message),
+      ),
     );
   }
 
@@ -116,10 +120,9 @@ class _DashboardPageState extends State<DashboardPage>
     return _products.take(5).toList(growable: false);
   }
 
-  int get _lowStockCount =>
-      _products
-          .where((Product product) => product.stock > 0 && product.stock <= 10)
-          .length;
+  int get _lowStockCount => _products
+      .where((Product product) => product.stock > 0 && product.stock <= 10)
+      .length;
 
   double get _totalValue => _products.fold<double>(
     0,
@@ -285,7 +288,7 @@ class _DashboardPageState extends State<DashboardPage>
           subtitle,
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+          ).textTheme.bodySmall?.copyWith(color: context.appTextSecondary),
         ),
       ],
     );
@@ -323,9 +326,9 @@ class _DashboardPageState extends State<DashboardPage>
               Text(
                 'Add products to see stock trends here.',
                 textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.appTextSecondary,
+                ),
               ),
             ],
           ),
@@ -393,7 +396,7 @@ class _DashboardPageState extends State<DashboardPage>
                       return Text(
                         value.toInt().toString(),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.appTextSecondary,
                         ),
                       );
                     },
@@ -420,7 +423,7 @@ class _DashboardPageState extends State<DashboardPage>
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(color: AppColors.textSecondary),
+                                ?.copyWith(color: context.appTextSecondary),
                           ),
                         ),
                       );
@@ -504,7 +507,7 @@ class _DashboardPageState extends State<DashboardPage>
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.appTextSecondary),
             ),
             const SizedBox(height: 14),
             OutlinedButton(
@@ -545,18 +548,19 @@ class _DashboardPageState extends State<DashboardPage>
               'Good morning 👋',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.appTextSecondary),
             ),
             const SizedBox(height: 2),
             Text(
               MaterialLocalizations.of(context).formatFullDate(DateTime.now()),
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.appTextSecondary),
             ),
           ],
         ),
         actions: <Widget>[
+          const ThemeModeIconButton(),
           IconButton(
             onPressed: () => _loadProducts(showLoading: false),
             icon: const Icon(Icons.refresh_rounded),
@@ -639,11 +643,11 @@ class _RecentProductCard extends StatelessWidget {
                                   if (_networkImageUrl.isEmpty) {
                                     return Container(
                                       height: 100,
-                                      color: AppColors.inputFill,
+                                      color: context.appInputFill,
                                       alignment: Alignment.center,
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.image_outlined,
-                                        color: AppColors.textSecondary,
+                                        color: context.appTextSecondary,
                                       ),
                                     );
                                   }
@@ -654,21 +658,20 @@ class _RecentProductCard extends StatelessWidget {
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     placeholder:
-                                        (
-                                          BuildContext context,
-                                          String url,
-                                        ) => Container(
-                                          height: 100,
-                                          color: AppColors.inputFill,
-                                          alignment: Alignment.center,
-                                          child: const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
+                                        (BuildContext context, String url) =>
+                                            Container(
+                                              height: 100,
+                                              color: context.appInputFill,
+                                              alignment: Alignment.center,
+                                              child: const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
                                     errorWidget:
                                         (
                                           BuildContext context,
@@ -677,11 +680,11 @@ class _RecentProductCard extends StatelessWidget {
                                         ) {
                                           return Container(
                                             height: 100,
-                                            color: AppColors.inputFill,
+                                            color: context.appInputFill,
                                             alignment: Alignment.center,
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.broken_image_outlined,
-                                              color: AppColors.textSecondary,
+                                              color: context.appTextSecondary,
                                             ),
                                           );
                                         },
@@ -692,11 +695,11 @@ class _RecentProductCard extends StatelessWidget {
                         ? Container(
                             height: 100,
                             width: double.infinity,
-                            color: AppColors.inputFill,
+                            color: context.appInputFill,
                             alignment: Alignment.center,
-                            child: const Icon(
+                            child: Icon(
                               Icons.image_outlined,
-                              color: AppColors.textSecondary,
+                              color: context.appTextSecondary,
                             ),
                           )
                         : CachedNetworkImage(
@@ -707,7 +710,7 @@ class _RecentProductCard extends StatelessWidget {
                             placeholder: (BuildContext context, String url) =>
                                 Container(
                                   height: 100,
-                                  color: AppColors.inputFill,
+                                  color: context.appInputFill,
                                   alignment: Alignment.center,
                                   child: const SizedBox(
                                     width: 18,
@@ -725,11 +728,11 @@ class _RecentProductCard extends StatelessWidget {
                                 ) {
                                   return Container(
                                     height: 100,
-                                    color: AppColors.inputFill,
+                                    color: context.appInputFill,
                                     alignment: Alignment.center,
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.broken_image_outlined,
-                                      color: AppColors.textSecondary,
+                                      color: context.appTextSecondary,
                                     ),
                                   );
                                 },
@@ -805,7 +808,7 @@ class _DashboardErrorState extends StatelessWidget {
                   message,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.appTextSecondary,
                   ),
                 ),
                 const SizedBox(height: 16),

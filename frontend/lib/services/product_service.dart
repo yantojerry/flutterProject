@@ -34,6 +34,7 @@ class ProductService {
     required String name,
     required double price,
     required int stock,
+    required String description,
     Uint8List? imageBytes,
     String? imageName,
   }) async {
@@ -41,6 +42,7 @@ class ProductService {
     request.fields['name'] = name;
     request.fields['price'] = price.toStringAsFixed(2);
     request.fields['stock'] = stock.toString();
+    request.fields['description'] = description;
 
     if (imageBytes != null) {
       request.files.add(
@@ -70,6 +72,7 @@ class ProductService {
     required String name,
     required double price,
     required int stock,
+    required String description,
     Uint8List? imageBytes,
     String? imageName,
   }) async {
@@ -80,6 +83,7 @@ class ProductService {
     request.fields['name'] = name;
     request.fields['price'] = price.toStringAsFixed(2);
     request.fields['stock'] = stock.toString();
+    request.fields['description'] = description;
     request.fields['existing_image'] = product.imageUrl ?? '';
 
     if (imageBytes != null) {

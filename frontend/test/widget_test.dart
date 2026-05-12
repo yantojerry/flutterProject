@@ -8,7 +8,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutterproject/main.dart';
-import 'package:flutterproject/login_page.dart';
+import 'package:flutterproject/pages/login_page.dart';
 
 void main() {
   testWidgets('shows the login page', (WidgetTester tester) async {

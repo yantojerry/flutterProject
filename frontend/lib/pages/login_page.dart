@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/theme_mode_icon_button.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.onLoginSuccess});
@@ -106,6 +108,22 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
+  Future<void> _openSignupPage() async {
+    final SignupResult? result = await Navigator.of(context).push<SignupResult>(
+      MaterialPageRoute<SignupResult>(
+        builder: (BuildContext context) => const SignupPage(),
+      ),
+    );
+
+    if (!mounted || result == null) {
+      return;
+    }
+
+    _emailController.text = result.email;
+    _passwordController.text = result.password;
+    await _login();
+  }
+
   String _errorMessage(Object error) {
     final String message = error.toString();
     if (message.startsWith('Exception: ')) {
@@ -116,17 +134,29 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final List<Color> backgroundColors = isDark
+        ? <Color>[const Color(0xFF020617), const Color(0xFF111827)]
+        : <Color>[AppColors.primary, const Color(0xFF0D47A1)];
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: <Color>[AppColors.primary, Color(0xFF0D47A1)],
+            colors: backgroundColors,
           ),
         ),
         child: Stack(
           children: <Widget>[
+            Positioned(
+              top: 8,
+              right: 8,
+              child: SafeArea(
+                child: ThemeModeIconButton(iconColor: Colors.white),
+              ),
+            ),
             Positioned(
               right: -40,
               top: 80,
@@ -165,7 +195,7 @@ class _LoginPageState extends State<LoginPage>
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 460),
                         child: Card(
-                          color: Colors.white,
+                          color: context.appSurface,
                           elevation: 2,
                           shadowColor: Colors.black.withValues(alpha: 0.12),
                           shape: RoundedRectangleBorder(
@@ -208,7 +238,7 @@ class _LoginPageState extends State<LoginPage>
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: context.appTextSecondary,
                                         ),
                                   ),
                                   const SizedBox(height: 32),
@@ -281,6 +311,13 @@ class _LoginPageState extends State<LoginPage>
                                     label: 'Login',
                                     onPressed: _isLoading ? null : _login,
                                     isLoading: _isLoading,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextButton(
+                                    onPressed: _isLoading
+                                        ? null
+                                        : _openSignupPage,
+                                    child: const Text(createAccountButtonText),
                                   ),
                                 ],
                               ),

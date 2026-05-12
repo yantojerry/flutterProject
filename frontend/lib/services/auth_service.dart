@@ -23,6 +23,23 @@ class AuthService {
       );
     }
   }
+
+  static Future<void> register({
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.post(
+      Uri.parse(registerEndpoint),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(<String, String>{'email': email, 'password': password}),
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception(
+        _readMessage(response.body, 'Unable to create the account.'),
+      );
+    }
+  }
 }
 
 String _readMessage(String body, String fallback) {

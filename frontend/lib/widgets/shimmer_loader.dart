@@ -47,17 +47,22 @@ class _ShimmerProductCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _box(60, 60, borderRadius: 10),
+                _box(context, 60, 60, borderRadius: 10),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _line(widthFactor: 0.72),
+                      _line(context, widthFactor: 0.72),
                       const SizedBox(height: 10),
-                      _line(widthFactor: 0.48, height: 10),
+                      _line(context, widthFactor: 0.48, height: 10),
                       const SizedBox(height: 18),
-                      _line(widthFactor: 0.38, height: 18, borderRadius: 999),
+                      _line(
+                        context,
+                        widthFactor: 0.38,
+                        height: 18,
+                        borderRadius: 999,
+                      ),
                     ],
                   ),
                 ),
@@ -65,14 +70,14 @@ class _ShimmerProductCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    _line(width: 90, height: 24, borderRadius: 999),
+                    _line(context, width: 90, height: 24, borderRadius: 999),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        _box(36, 36, borderRadius: 10),
+                        _box(context, 36, 36, borderRadius: 10),
                         const SizedBox(width: 8),
-                        _box(36, 36, borderRadius: 10),
+                        _box(context, 36, 36, borderRadius: 10),
                       ],
                     ),
                   ],
@@ -85,13 +90,14 @@ class _ShimmerProductCard extends StatelessWidget {
     );
   }
 
-  Widget _line({
+  Widget _line(
+    BuildContext context, {
     double width = double.infinity,
     double? widthFactor,
     double height = 14,
     double borderRadius = 8,
   }) {
-    final Widget box = _box(width, height, borderRadius: borderRadius);
+    final Widget box = _box(context, width, height, borderRadius: borderRadius);
 
     if (widthFactor == null) {
       return box;
@@ -103,12 +109,17 @@ class _ShimmerProductCard extends StatelessWidget {
     );
   }
 
-  Widget _box(double width, double height, {double borderRadius = 8}) {
+  Widget _box(
+    BuildContext context,
+    double width,
+    double height, {
+    double borderRadius = 8,
+  }) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.inputFill,
+        color: context.appInputFill,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );

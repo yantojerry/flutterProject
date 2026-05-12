@@ -35,7 +35,7 @@ class ProductImagePicker extends StatelessWidget {
         height: 180,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: _hasImage ? AppColors.surface : Colors.white,
+          color: context.appSurface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: <BoxShadow>[
             BoxShadow(
@@ -97,7 +97,7 @@ class ProductImagePicker extends StatelessWidget {
               'PNG, JPG, or WEBP',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: context.appTextSecondary),
             ),
           ],
         ),
@@ -125,30 +125,29 @@ class ProductImagePicker extends StatelessWidget {
         width: double.infinity,
         height: 180,
         fit: BoxFit.cover,
-        errorBuilder: (
-          BuildContext context,
-          Object error,
-          StackTrace? stackTrace,
-        ) {
-          if (networkImageUrl.isEmpty) {
-            return _buildNetworkFallback(context);
-          }
+        errorBuilder:
+            (BuildContext context, Object error, StackTrace? stackTrace) {
+              if (networkImageUrl.isEmpty) {
+                return _buildNetworkFallback(context);
+              }
 
-          return CachedNetworkImage(
-            key: const ValueKey<String>('product_image_picker_network_fallback'),
-            imageUrl: networkImageUrl,
-            width: double.infinity,
-            height: 180,
-            fit: BoxFit.cover,
-            placeholder: (BuildContext context, String url) => Container(
-              color: AppColors.inputFill,
-              alignment: Alignment.center,
-              child: const CircularProgressIndicator(strokeWidth: 2),
-            ),
-            errorWidget: (BuildContext context, String url, Object error) =>
-                _buildNetworkFallback(context),
-          );
-        },
+              return CachedNetworkImage(
+                key: const ValueKey<String>(
+                  'product_image_picker_network_fallback',
+                ),
+                imageUrl: networkImageUrl,
+                width: double.infinity,
+                height: 180,
+                fit: BoxFit.cover,
+                placeholder: (BuildContext _, String url) => Container(
+                  color: context.appInputFill,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (BuildContext _, String url, Object error) =>
+                    _buildNetworkFallback(context),
+              );
+            },
       );
     } else if (networkImageUrl.isNotEmpty) {
       image = CachedNetworkImage(
@@ -157,12 +156,12 @@ class ProductImagePicker extends StatelessWidget {
         width: double.infinity,
         height: 180,
         fit: BoxFit.cover,
-        placeholder: (BuildContext context, String url) => Container(
-          color: AppColors.inputFill,
+        placeholder: (BuildContext _, String url) => Container(
+          color: context.appInputFill,
           alignment: Alignment.center,
           child: const CircularProgressIndicator(strokeWidth: 2),
         ),
-        errorWidget: (BuildContext context, String url, Object error) =>
+        errorWidget: (BuildContext _, String url, Object error) =>
             _buildNetworkFallback(context),
       );
     } else {
@@ -194,7 +193,7 @@ class ProductImagePicker extends StatelessWidget {
   Widget _buildNetworkFallback(BuildContext context) {
     return Container(
       key: const ValueKey<String>('product_image_picker_fallback'),
-      color: AppColors.inputFill,
+      color: context.appInputFill,
       alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -203,13 +202,13 @@ class ProductImagePicker extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.appSurface,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.image_outlined,
               size: 30,
-              color: AppColors.textSecondary,
+              color: context.appTextSecondary,
             ),
           ),
           const SizedBox(height: 12),
@@ -221,7 +220,6 @@ class ProductImagePicker extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _DashedBorderPainter extends CustomPainter {

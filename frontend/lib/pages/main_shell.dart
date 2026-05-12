@@ -43,7 +43,7 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(index: _selectedIndex, children: pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.appSurface,
           boxShadow: <BoxShadow>[
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -57,9 +57,9 @@ class _MainShellState extends State<MainShell> {
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: _setSelectedIndex,
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.appSurface,
             selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.textSecondary,
+            unselectedItemColor: context.appTextSecondary,
             selectedFontSize: 12,
             unselectedFontSize: 12,
             type: BottomNavigationBarType.fixed,

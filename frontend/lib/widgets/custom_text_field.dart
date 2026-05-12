@@ -72,7 +72,7 @@ class CustomTextField extends StatelessWidget {
       minLines: minLines,
       inputFormatters: inputFormatters,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: AppColors.textPrimary,
+        color: context.appTextPrimary,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(

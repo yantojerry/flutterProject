@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/product_image_picker.dart';
+import '../widgets/theme_mode_icon_button.dart';
 
 class AddProductPage extends StatefulWidget {
   const AddProductPage({super.key});
@@ -20,6 +21,7 @@ class AddProductPage extends StatefulWidget {
 class _AddProductPageState extends State<AddProductPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController(
     text: '0',
@@ -34,6 +36,7 @@ class _AddProductPageState extends State<AddProductPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
     _priceController.dispose();
     _stockController.dispose();
     super.dispose();
@@ -112,6 +115,7 @@ class _AddProductPageState extends State<AddProductPage> {
     try {
       final String? savedImageName = await _productService.addProduct(
         name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
         price: price,
         stock: stock,
         imageBytes: _selectedImageBytes,
@@ -171,7 +175,10 @@ class _AddProductPageState extends State<AddProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(addProductTitle)),
+      appBar: AppBar(
+        title: const Text(addProductTitle),
+        actions: const <Widget>[ThemeModeIconButton()],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -198,6 +205,16 @@ class _AddProductPageState extends State<AddProductPage> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _descriptionController,
+                  labelText: 'Description',
+                  hintText: 'Add a short product description',
+                  prefixIcon: Icons.description_outlined,
+                  textInputAction: TextInputAction.next,
+                  textCapitalization: TextCapitalization.sentences,
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(

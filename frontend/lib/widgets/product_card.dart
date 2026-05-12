@@ -13,6 +13,7 @@ class ProductCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onTap,
+    this.onImageTap,
     this.subtitle = 'Inventory item',
     this.enabled = true,
   });
@@ -21,6 +22,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
+  final VoidCallback? onImageTap;
   final String subtitle;
   final bool enabled;
 
@@ -54,19 +56,27 @@ class ProductCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildThumbnail(),
+            _buildThumbnail(context),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _StockCountPill(stock: product.stock),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -74,7 +84,7 @@ class ProductCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.appTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -125,109 +135,149 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
+    late final Widget thumbnailContent;
     if (_assetImagePath != null) {
-      return ClipRRect(
+      thumbnailContent = ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Image.asset(
           _assetImagePath!,
           width: 60,
           height: 60,
           fit: BoxFit.cover,
-          errorBuilder: (BuildContext context, Object error, StackTrace? stack) {
-            if (_networkImageUrl.isEmpty) {
-              return Container(
-                width: 60,
-                height: 60,
-                color: AppColors.inputFill,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.image_outlined,
-                  color: AppColors.textSecondary,
-                ),
-              );
-            }
+          errorBuilder:
+              (BuildContext context, Object error, StackTrace? stack) {
+                if (_networkImageUrl.isEmpty) {
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    color: context.appInputFill,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.image_outlined,
+                      color: context.appTextSecondary,
+                    ),
+                  );
+                }
 
-            return CachedNetworkImage(
-              imageUrl: _networkImageUrl,
+                return CachedNetworkImage(
+                  imageUrl: _networkImageUrl,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  placeholder: (BuildContext _, String url) {
+                    return Container(
+                      width: 60,
+                      height: 60,
+                      color: context.appInputFill,
+                      alignment: Alignment.center,
+                      child: const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  },
+                  errorWidget: (BuildContext _, String url, Object error) {
+                    return Container(
+                      width: 60,
+                      height: 60,
+                      color: context.appInputFill,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: context.appTextSecondary,
+                      ),
+                    );
+                  },
+                );
+              },
+        ),
+      );
+    } else if (_networkImageUrl.isEmpty) {
+      thumbnailContent = Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: context.appInputFill,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(Icons.image_outlined, color: context.appTextSecondary),
+      );
+    } else {
+      thumbnailContent = ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: CachedNetworkImage(
+          imageUrl: _networkImageUrl,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          placeholder: (BuildContext _, String url) {
+            return Container(
               width: 60,
               height: 60,
-              fit: BoxFit.cover,
-              placeholder: (BuildContext context, String url) {
-                return Container(
-                  width: 60,
-                  height: 60,
-                  color: AppColors.inputFill,
-                  alignment: Alignment.center,
-                  child: const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                );
-              },
-              errorWidget: (BuildContext context, String url, Object error) {
-                return Container(
-                  width: 60,
-                  height: 60,
-                  color: AppColors.inputFill,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.broken_image_outlined,
-                    color: AppColors.textSecondary,
-                  ),
-                );
-              },
+              color: context.appInputFill,
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorWidget: (BuildContext _, String url, Object error) {
+            return Container(
+              width: 60,
+              height: 60,
+              color: context.appInputFill,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.broken_image_outlined,
+                color: context.appTextSecondary,
+              ),
             );
           },
         ),
       );
     }
 
-    if (_networkImageUrl.isEmpty) {
-      return Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: AppColors.inputFill,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Icon(Icons.image_outlined, color: AppColors.textSecondary),
-      );
+    if (onImageTap == null) {
+      return thumbnailContent;
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: CachedNetworkImage(
-        imageUrl: _networkImageUrl,
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
-        placeholder: (BuildContext context, String url) {
-          return Container(
-            width: 60,
-            height: 60,
-            color: AppColors.inputFill,
-            alignment: Alignment.center,
-            child: const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
-        },
-        errorWidget: (BuildContext context, String url, Object error) {
-          return Container(
-            width: 60,
-            height: 60,
-            color: AppColors.inputFill,
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.broken_image_outlined,
-              color: AppColors.textSecondary,
-            ),
-          );
-        },
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onImageTap,
+        borderRadius: BorderRadius.circular(10),
+        child: thumbnailContent,
+      ),
+    );
+  }
+}
+
+class _StockCountPill extends StatelessWidget {
+  const _StockCountPill({required this.stock});
+
+  final int stock;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Stock quantity: $stock',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: context.appInputFill,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          '$stock',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: context.appTextPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -262,7 +312,7 @@ class _ActionButton extends StatelessWidget {
             child: Icon(
               icon,
               size: 18,
-              color: onPressed == null ? AppColors.textSecondary : color,
+              color: onPressed == null ? context.appTextSecondary : color,
             ),
           ),
         ),

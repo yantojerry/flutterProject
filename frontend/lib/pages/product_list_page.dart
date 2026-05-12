@@ -8,7 +8,9 @@ import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/product_card.dart';
+import '../widgets/product_detail_sheet.dart';
 import '../widgets/shimmer_loader.dart';
+import '../widgets/theme_mode_icon_button.dart';
 import 'add_product_page.dart';
 import 'edit_product_page.dart';
 
@@ -349,12 +351,14 @@ class _ProductListPageState extends State<ProductListPage> {
                 onSelected: (_) => _setFilter(filter),
                 showCheckmark: false,
                 selectedColor: AppColors.primary,
-                backgroundColor: Colors.white,
+                backgroundColor: context.appSurface,
                 side: BorderSide(
-                  color: selected ? AppColors.primary : Colors.grey.shade200,
+                  color: selected
+                      ? AppColors.primary
+                      : Theme.of(context).dividerColor,
                 ),
                 labelStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? Colors.white : context.appTextSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               );
@@ -400,7 +404,7 @@ class _ProductListPageState extends State<ProductListPage> {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.appTextSecondary,
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -483,6 +487,10 @@ class _ProductListPageState extends State<ProductListPage> {
               enabled: !_isDeleting,
               onEdit: _isDeleting ? null : () => _openEditProduct(product),
               onDelete: _isDeleting ? null : () => _deleteProduct(product),
+              onImageTap: () => showProductDetailsSheet(context, product),
+              subtitle: product.description.trim().isNotEmpty
+                  ? product.description.trim()
+                  : 'Tap image for details',
             ),
           );
         },
@@ -552,6 +560,7 @@ class _ProductListPageState extends State<ProductListPage> {
         automaticallyImplyLeading: false,
         title: const Text(productsTitle),
         actions: <Widget>[
+          const ThemeModeIconButton(),
           IconButton(
             tooltip: _isSearchExpanded ? 'Close search' : 'Search',
             onPressed: _isDeleting ? null : _toggleSearch,
